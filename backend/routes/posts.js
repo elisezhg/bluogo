@@ -4,7 +4,7 @@ let Comment = require('../models/comment-model');
 
 // GET request : get all posts
 router.route('/').get((req, res) => {
-    Post.find()
+    Post.find().sort({createdAt: -1})
         .then(posts => res.json(posts))
         .catch(err => res.status(400).json('Error: ' + err));
 });
@@ -12,9 +12,9 @@ router.route('/').get((req, res) => {
 
 
 // GET request : get a specific post
-router.route('/:id').get((req, res) => {
-    Post.findById(req.params.id)
-        .then(post => res.json(post))
+router.route('/:user_id').get((req, res) => {
+    Post.find({user_id : req.params.user_id}).sort({createdAt: -1})
+        .then(posts => res.json(posts))
         .catch(err => res.status(400).json('Error: ' + err));
 });
 

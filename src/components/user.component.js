@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import Axios from 'axios';
-import Jumbotron from 'react-bootstrap/Jumbotron';
 import Container from 'react-bootstrap/Container';
-import Button from 'react-bootstrap/Button';
 
 export default class User extends Component {
     constructor(props) {
@@ -11,7 +9,7 @@ export default class User extends Component {
         this.calculateAge = this.calculateAge.bind(this);
 
         this.state = {
-            username: 'johndoe',
+            username: props.match.params.username,
             firstName: 'John',
             lastName: 'Doe',
             dateOfBirth: new Date(),
@@ -21,7 +19,7 @@ export default class User extends Component {
     }
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.props.match.params.username)
+        Axios.get('http://localhost:5000/users/' + this.state.username)
             .then(res => {
                 this.setState({
                     username: res.data.username,
@@ -43,11 +41,11 @@ export default class User extends Component {
 
     render() {
         return (
-                <Container className="text-center">
-                    <h1 className="display-4">{this.state.firstName} {this.state.lastName} | <small className="text-muted">{this.state.age}</small></h1>
-                    <h2>@{this.state.username}</h2><hr className="my-4"/>
-                    <p className="lead"><i>{this.state.bio}</i></p>
-                </Container>
+            <Container className="text-center">
+                <h1 className="display-4">{this.state.firstName} {this.state.lastName} | <small className="text-muted">{this.state.age}</small></h1>
+                <h2>@{this.state.username}</h2><hr className="my-4"/>
+                <p className="lead"><i>{this.state.bio}</i></p>
+            </Container>
         )
     }
 }

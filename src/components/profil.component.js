@@ -4,12 +4,14 @@ import Jumbotron from 'react-bootstrap/Jumbotron';
 import Button from 'react-bootstrap/Button';
 import User from './user.component';
 import AddPost from './add-post.component';
+import Posts from './posts.component';
 
 export default class Profil extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            user_id: '',
             username: '',
             password: '',
             firstname: '',
@@ -18,14 +20,6 @@ export default class Profil extends Component {
         }
     }
 
-    componentDidMount() {
-        // Axios.get('http://localhost:5000/users/' + this.props.match.params.id)
-        //     .then(resp => {
-        //         this.setState({
-
-        //         })
-        //     })
-    }
 
     render() {
         return (
@@ -37,7 +31,10 @@ export default class Profil extends Component {
                         <Button href={"/profil/edit/" + this.props.match.params.username}  variant="outline-secondary" size="sm">Edit</Button>
                     </div><hr/>
 
-                    <Route path="/profil/:username" exact component={AddPost} />
+                    <AddPost username={this.props.match.params.username}/>
+                    {/* <Route path="/profil/:username" exact component={AddPost} /> */}
+                    {/* <Route path="/profil/:username" exact component={Post} /> */}
+                    <Posts username={this.props.match.params.username}/>
                 </Jumbotron>
             </Router>
         )

@@ -14,26 +14,27 @@ export default class EditProfil extends Component {
         this.onChangeContent = this.onChangeContent.bind(this);
 
         this.state = {
+            username: props.username,
             user_id: '',
             content: ''
         }
     }
 
+
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.props.match.params.username)
-            .then(res => {
-                console.log(res.data._id)
-                this.setState = {
+        Axios.get('http://localhost:5000/users/' + this.state.username)
+            .then(res => {                
+                this.setState({
                     user_id: res.data._id
-                }
+                })
             })
             .catch(err => console.log(err));
     }
 
     onChangeContent(e) {
-        this.setState = {
+        this.setState({
             content: e.target.value
-        }
+        });
     }
 
     onSubmit(e) {
@@ -45,10 +46,16 @@ export default class EditProfil extends Component {
             like: []
         }
 
-        console.log(post)
+        console.log(this.state.user_id)
 
         Axios.post('http://localhost:5000/posts/add', post)
-            .then(res => console.log(res.data))
+            .then(res => {
+                console.log(res.data);
+
+                this.setState({
+                    content: ''
+                })
+            })
             .catch(err => console.log(err));
     }
 
@@ -57,10 +64,10 @@ export default class EditProfil extends Component {
         return (
                 <Card as={Col} md="" bg="primary" key="1" text="white" style={{ width: '70%', margin: 'auto' }}>
                     <Card.Body>
-                        <Card.Title>@{this.props.match.params.username}</Card.Title>
+                        <Card.Title>@{this.state.username}</Card.Title>
                         <Form onSubmit={this.onSubmit}>
                             <Form.Group controlId="exampleForm.ControlTextarea1">
-                                <Form.Control as="textarea" rows="3" placeholder="Write something!" onChange={this.onChangeContent}/>
+                                <Form.Control as="textarea" rows="3" placeholder="Write something!" value= {this.state.content} onChange={this.onChangeContent}/>
                             </Form.Group>
                             
                             <div className="text-right">

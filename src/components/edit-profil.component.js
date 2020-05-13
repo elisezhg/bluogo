@@ -104,6 +104,8 @@ export default class EditProfil extends Component {
         this.setState({
             bio: e.target.value
         });
+
+        console.log(this.state.bio)
     }
 
 
