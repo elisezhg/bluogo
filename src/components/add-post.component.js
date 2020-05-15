@@ -4,7 +4,7 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
-
+import '../utils/custom.css';
 
 export default class EditProfil extends Component {
     constructor(props) {
@@ -62,12 +62,12 @@ export default class EditProfil extends Component {
 
     render() {
         return (
-                <Card as={Col} md="" bg="primary" key="1" text="white" style={{ width: '70%', margin: 'auto' }}>
+                <Card as={Col} md="" bg="white" key="1" text="dark" style={{ width: '70%', margin: 'auto' }}>
                     <Card.Body>
                         <Card.Title>@{this.state.username}</Card.Title>
                         <Form onSubmit={this.onSubmit}>
-                            <Form.Group controlId="exampleForm.ControlTextarea1">
-                                <Form.Control as="textarea" rows="3" placeholder="Write something!" value= {this.state.content} onChange={this.onChangeContent}/>
+                            <Form.Group>
+                                <Form.Control className="custom-textarea" as="textarea" text="white" rows="3" placeholder="Write something!" value= {this.state.content} onChange={this.onChangeContent}></Form.Control>
                             </Form.Group>
                             
                             <div className="text-right">

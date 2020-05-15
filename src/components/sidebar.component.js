@@ -5,29 +5,56 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 
-export default class Sidebar extends Component {
-    render() {
 
+
+export default class Sidebar extends Component {
+ 
+    constructor(props) {
+        super(props);
+
+        this.onClickLogOut = this.onClickLogOut.bind(this);
+        this.onClickProfil = this.onClickProfil.bind(this);
+
+        this.state = {
+            Auth: this.props.authApi
+        }
+    }
+
+
+    onClickLogOut(e) {
+        localStorage.removeItem("username");
+        localStorage.removeItem("logged in");
+        this.state.Auth.setAuth(false);
+        console.log(this.state.Auth.auth);
+        window.location = "/login";
+    }
+
+    onClickProfil(e) {
+        const aut = localStorage.getItem("logged in");
+        window.location = aut ? "/profil/" + localStorage.getItem('username') : "/login"
+    }
+
+
+    render() {
         return (
             <Navbar bg="dark" variant="dark" expand="lg">
-            <Navbar.Brand href="/">SocialMedia</Navbar.Brand>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="mr-auto">
-                <Nav.Link href="/">Home</Nav.Link>
-                <Nav.Link href="/login">Login</Nav.Link>
-                <Nav.Link href="/register">Reg</Nav.Link>
-                <Nav.Link href="/profil">Profil</Nav.Link>
-                <Nav.Link href="/">Trends</Nav.Link>
-                <Nav.Link href="/">Logout</Nav.Link>
+                <Navbar.Brand href="/">SocialMedia</Navbar.Brand>
+                <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                
+                <Navbar.Collapse id="basic-navbar-nav">
+                    <Nav className="mr-auto">
+                        <Nav.Link href="/" >Home</Nav.Link>
+                        <Nav.Link onClick={this.onClickProfil}>Profil</Nav.Link>
+                        <Nav.Link href="/">Trends</Nav.Link>
+                        <Nav.Link onClick={this.onClickLogOut}>Logout</Nav.Link>
 
-              </Nav>
-              <Form inline>
-                <FormControl type="text" placeholder="Search" className="mr-sm-2" />
-                <Button variant="outline-success">Search user</Button>
-              </Form>
-            </Navbar.Collapse>
-          </Navbar>
+                    </Nav>
+                    <Form inline>
+                        <FormControl type="text" placeholder="Search" className="mr-sm-2" />
+                        <Button variant="outline-success">Search user</Button>
+                    </Form>
+                </Navbar.Collapse>
+            </Navbar>
           
 
         )

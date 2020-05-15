@@ -10,10 +10,10 @@ export default class User extends Component {
 
         this.state = {
             username: props.match.params.username,
-            firstName: 'John',
-            lastName: 'Doe',
+            firstName: localStorage.getItem('firstname'),
+            lastName: localStorage.getItem('lastname'),
             dateOfBirth: new Date(),
-            bio: 'Nothing interesting',
+            bio: localStorage.getItem('bio'),
             age: 0
         }
     }

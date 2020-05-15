@@ -10,7 +10,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import User from './user.component';
 import { BrowserRouter as Router, Route} from "react-router-dom";
-
+import '../utils/custom.css';
+const passwordHash = require('password-hash');
 
 
 export default class EditProfil extends Component {
@@ -24,15 +25,27 @@ export default class EditProfil extends Component {
         this.onChangeFirstName = this.onChangeFirstName.bind(this);
         this.onChangeLastName = this.onChangeLastName.bind(this);
         this.onChangePassword = this.onChangePassword.bind(this);
-        this.onChangePasswordConf = this.onChangePasswordConf.bind(this);
+        this.onChangeNewPassword = this.onChangeNewPassword.bind(this);
+        this.onChangeNewPasswordConf = this.onChangeNewPasswordConf.bind(this);
         this.onChangeBio = this.onChangeBio.bind(this);
 
         this.state = {
             username: '',
+            newUsername: '',
             password: '',
             firstName: '',
             lastName: '',
-            dateOfBirth: new Date()
+            dateOfBirth: new Date(),
+            usernameUnique: true,
+            newPassword: '',
+            newPasswordConf: '',
+            passwordHashed: '',
+            passwordMatch: true,
+            newPwInvalid: false,
+            newPwConfInvalid: false,
+            lastNameInvalid: false,
+            firstNameInvalid: false,
+            usernameInvalid: false
         }
     }
 
@@ -41,13 +54,16 @@ export default class EditProfil extends Component {
             .then(res => {
                 this.setState({
                     username: res.data.username,
+                    newUsername: res.data.username,
                     firstName: res.data.firstName,
                     lastName: res.data.lastName,
                     dateOfBirth: new Date(res.data.dateOfBirth),
-                    bio: res.data.bio
+                    bio: res.data.bio,
+                    passwordHashed: res.data.password
                 })
             })
     }
+
 
     onChangeDate(date) {
         this.setState({
@@ -58,54 +74,110 @@ export default class EditProfil extends Component {
 
     onChangeUsername(e) {
         this.setState({
-            username: e.target.value
+            newUsername: e.target.value,
+            usernameUnique: true,
+            usernameInvalid: false
         });
 
-        //username already taken?
+        const regex = /[^a-zA-Z0-9._-]/;
+
+        if (regex.test(e.target.value)) {
+            this.setState({
+                usernameInvalid: true
+            })
+        }
+
+        // Username already taken?
         Axios.get('http://localhost:5000/users/')
         .then(users => {
-            users.data.foreach(user => {
-                if (user.username === this.state.username) {
-                    console.log("username is already taken");
+            for (var user in users.data) {
+                const username = users.data[user].username;
+                if (username === this.state.newUsername && username !== this.state.username) {
+                    this.setState({
+                        usernameUnique: false
+                    })
                     return;
                 }
-            })
+            }
         })
         .catch(err => console.log(err));
     }
 
+
     onChangeFirstName(e) {
         this.setState({
-            firstName: e.target.value
+            firstName: e.target.value,
+            firstNameInvalid: false
         });
+
+        const regex = /[^a-zA-Z]/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                firstNameInvalid: true
+            })
+        }
     }
 
 
     onChangeLastName(e) {
         this.setState({
-            lastName: e.target.value
+            lastName: e.target.value,
+            lastNameInvalid: false
         });
+
+        const regex = /[^a-zA-Z]/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                lastNameInvalid: true
+            })
+        }
     }
+
 
     onChangePassword(e) {
         this.setState({
-            password: e.target.value
+            password: e.target.value,
+            passwordMatch: true
         });
+
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                passwordInvalid: false
+            })
+        }
     }
 
-    onChangePasswordConf(e) {
+    onChangeNewPassword(e) {
         this.setState({
-            passwordConf: e.target.value
+            newPassword: e.target.value,
+            newPwInvalid: true
         });
+
+        
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                newPwInvalid: false
+            })
+        }
     }
 
+    onChangeNewPasswordConf(e) {
+        this.setState({
+            newPasswordConf: e.target.value,
+            newPwConfInvalid: false
+        });
+    }
     
     onChangeBio(e) {
         this.setState({
             bio: e.target.value
         });
-
-        console.log(this.state.bio)
     }
 
 
@@ -113,28 +185,43 @@ export default class EditProfil extends Component {
     onSubmit(e) {
         e.preventDefault();
 
-        if (this.state.password !== this.state.passwordConf) {
-            console.log("password does not match");
-        } else {
-            console.log("pw matches");
+        if (this.state.newPassword !== this.state.newPasswordConf) {
+            this.setState({
+                newPwConfInvalid: true
+            })
+            return;
+        } else if (!passwordHash.verify(this.state.password, this.state.passwordHashed)) {
+            this.setState({
+                passwordMatch: false
+            })
+            return;
+        } else if (this.state.usernameUnique === false) {
+            return;
         }
 
 
         //post user
         const user = {
-            username: this.state.username,
+            username: this.state.newUsername,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            password: this.state.password,
+            password: this.state.passwordHashed,
             dateOfBirth: this.state.dateOfBirth,
             bio: this.state.bio
+        }
+
+        if (this.state.newPassword !== '') {
+            user.password = passwordHash.generate(this.state.newPassword);
         }
 
         console.log(user)
         Axios.post('http://localhost:5000/users/edit/' + this.props.match.params.username, user)
             .then(res => {
-                console.log(res.data);
-                window.location = '/profil/' + this.state.username;
+                localStorage.setItem('username', this.state.newUsername);
+                localStorage.setItem('firstname', this.state.firstName);
+                localStorage.setItem('lastname', this.state.lastName);
+                localStorage.setItem('bio', this.state.bio)
+                window.location = '/profil/' + this.state.newUsername;
             })
             .catch(err => console.log(err));
     }
@@ -147,15 +234,25 @@ export default class EditProfil extends Component {
         return (
             <Router>
             <Jumbotron>
-                <Route path="/profil/edit/:username" exact component={User} />
+                <Route path="/profil/edit/:username" exact component={User} /><br/><br/>
 
                 <Form onSubmit={this.onSubmit}>
                 <Form.Group as={Col} md="8" className="mx-auto">
 
                 <Form.Label>Personal information</Form.Label>
                 <Row>
-                    <Col><Form.Control required type="text" value={this.state.firstName} onChange={this.onChangeFirstName} /></Col>
-                    <Col><Form.Control required type="text" value={this.state.lastName} onChange={this.onChangeLastName}/></Col>
+                    <Col>
+                        <Form.Group>
+                            <Form.Control required isInvalid={this.state.firstNameInvalid} value={this.state.firstName} onChange={this.onChangeFirstName} />
+                            <Form.Control.Feedback type="invalid">First name is invalid</Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    <Col>
+                        <Form.Group>
+                            <Form.Control required isInvalid={this.state.lastNameInvalid} value={this.state.lastName} onChange={this.onChangeLastName} />
+                            <Form.Control.Feedback type="invalid">Last name is invalid</Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
                     <Col><DatePicker
                         required
                         peekNextMonth
@@ -167,26 +264,44 @@ export default class EditProfil extends Component {
                         onChange={this.onChangeDate}
                         className="form-control"/>
                     </Col>
-                </Row><br/>
+                </Row><br/><br/>
 
-                <hr/><Form.Label>Profil</Form.Label>
+                <Form.Group>
+                        <Form.Label>Bio</Form.Label>
+                        <Form.Control as="textarea" rows="3" value={this.state.bio} onChange={this.onChangeBio}/>
+                </Form.Group><br/>
+
+                <Form.Label>Profil</Form.Label>
                     <InputGroup>
                         <InputGroup.Prepend>
                             <InputGroup.Text id="inputGroupPrepend">@</InputGroup.Text>
                         </InputGroup.Prepend>
 
-                        <Form.Control required type="text" aria-describedby="inputGroupPrepend" value={this.state.username} onChange={this.onChangeUsername}/>
+                        <Form.Control required isInvalid={this.state.usernameInvalid || !this.state.usernameUnique} type="text" placeholder="Username" aria-describedby="inputGroupPrepend" value={this.state.newUsername} onChange={this.onChangeUsername}/>
+                        <Form.Control.Feedback type="invalid">{this.state.usernameInvalid? "Please choose a valid username." : "Username is already taken!"}</Form.Control.Feedback>
+                    </InputGroup><br/><br/>
 
-                    </InputGroup><br/>
-
+                    <Form.Label>Change password</Form.Label>
                     <Form.Group>
-                        <Form.Control required type="password" placeholder="Password" autoComplete="on" onChange={this.onChangePassword}/><br/>
+                        <Form.Control isInvalid={this.state.newPwInvalid} type="password" placeholder="New password" autoComplete="on" onChange={this.onChangeNewPassword}/>
+                        <Form.Control.Feedback type="invalid">
+                            Password must be 6 characters or longer and must contain at least :
+                            <ul>
+                                <li>1 lowercase</li>
+                                <li>1 uppercase</li>
+                                <li>1 digit</li>
+                            </ul>
+                        </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Control isInvalid={this.state.newPwConfInvalid} type="password" placeholder="Confirm new password" autoComplete="on" onChange={this.onChangeNewPasswordConf}/>
+                        <Form.Control.Feedback type="invalid">Passwords don't match.</Form.Control.Feedback>
                     </Form.Group><br/>
 
-
                     <Form.Group>
-                        <Form.Label>Bio</Form.Label>
-                        <Form.Control as="textarea" rows="3" value={this.state.bio} onChange={this.onChangeBio}/>
+                        <Form.Label>Enter your password to apply changes</Form.Label>
+                        <Form.Control required isInvalid={!this.state.passwordMatch} type="password" placeholder="Password" autoComplete="on" onChange={this.onChangePassword}/>
+                        <Form.Control.Feedback type="invalid">Password is incorrect.</Form.Control.Feedback>
                     </Form.Group>
 
                     <div className="text-right">

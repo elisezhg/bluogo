@@ -9,6 +9,8 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import '../utils/custom.css';
+const passwordHash = require('password-hash');
 
 
 
@@ -29,9 +31,16 @@ export default class Register extends Component {
             username: '',
             password: '',
             passwordConf: '',
-            firstname: '',
-            lastname: '',
-            date: new Date()
+            firstName: '',
+            lastName: '',
+            date: new Date(),
+            usernameUnique: true,
+            firstNameInvalid: false,
+            lastNameInvalid: false,
+            usernameInvalid: false,
+            passwordInvalid: false,
+            pwConfInvalid: false,
+            Auth: this.props.authApi
         }
     }
 
@@ -44,44 +53,87 @@ export default class Register extends Component {
 
     onChangeUsername(e) {
         this.setState({
-            username: e.target.value
+            username: e.target.value,
+            usernameUnique: true,
+            usernameInvalid: false
         });
 
-        //username already taken?
-        Axios.get('http://localhost:5000/users/')
+
+        const regex = /[^a-zA-Z0-9._-]/;
+
+        if (regex.test(e.target.value)) {
+            this.setState({
+                usernameInvalid: true
+            })
+        }
+
+
+        // Username already taken?
+        Axios.get('http://localhost:5000/users/usernames')
         .then(users => {
-            users.data.foreach(user => {
-                if (user.username === this.state.username) {
-                    console.log("username is already taken");
+            for (var user in users.data) {
+                const username = users.data[user].username;
+                if (username === this.state.username) {
+                    this.setState({
+                        usernameUnique: false
+                    })
                     return;
                 }
-            })
+            }
         })
         .catch(err => console.log(err));
     }
 
     onChangeFirstName(e) {
         this.setState({
-            firstname: e.target.value
+            firstName: e.target.value,
+            firstNameInvalid: false
         });
+
+        const regex = /[^a-zA-Z]/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                firstNameInvalid: true
+            })
+        }
     }
 
 
     onChangeLastName(e) {
         this.setState({
-            lastname: e.target.value
+            lastName: e.target.value,
+            lastNameInvalid: false
         });
+
+        const regex = /[^a-zA-Z]/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                lastNameInvalid: true
+            })
+        }
     }
 
     onChangePassword(e) {
         this.setState({
-            password: e.target.value
+            password: e.target.value,
+            passwordInvalid: true
         });
+
+        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        
+        if (regex.test(e.target.value)) {
+            this.setState({
+                passwordInvalid: false
+            })
+        }
     }
 
     onChangePasswordConf(e) {
         this.setState({
-            passwordConf: e.target.value
+            passwordConf: e.target.value,
+            pwConfInvalid: false
         });
     }
 
@@ -92,23 +144,31 @@ export default class Register extends Component {
 
         if (this.state.password !== this.state.passwordConf) {
             console.log("password does not match");
-        } else {
-            console.log("pw matches");
+            this.setState({
+                pwConfInvalid: true
+            })
+            return;
+        } else if (this.state.usernameUnique === false) {
+            console.log("username is already taken");
+            return;
         }
-
 
         //post user
         const user = {
             username: this.state.username,
-            firstName: this.state.firstname,
-            lastName: this.state.lastname,
-            password: this.state.password,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            password: passwordHash.generate(this.state.password),   // hash password
             dateOfBirth: this.state.date
         }
 
         Axios.post('http://localhost:5000/users/add', user)
             .then(res => {
-                console.log(res.data);
+                this.state.Auth.setAuth(true);
+                localStorage.setItem('logged in', 'true');
+                localStorage.setItem('username', this.state.username);
+                localStorage.setItem('firstname', this.state.firstName);
+                localStorage.setItem('lastname', this.state.lastName);
                 window.location = '/';
             })
             .catch(err => console.log(err));
@@ -126,20 +186,32 @@ export default class Register extends Component {
 
                 <h1>Register</h1><br/>
 
-                <Form.Label>Personal information</Form.Label>
                 <Row>
-                    <Col><Form.Control required placeholder="First name" onChange={this.onChangeFirstName} /></Col>
-                    <Col><Form.Control required placeholder="Last name" onChange={this.onChangeLastName} /></Col>
-                    <Col><DatePicker 
-                        required
-                        peekNextMonth
-                        showMonthDropdown
-                        showYearDropdown
-                        dropdownMode="select"
-                        maxDate={this.state.date}
-                        selected={this.state.date}
-                        onChange={this.onChangeDate}
-                        className="form-control"/>
+                    <Col>
+                        <Form.Label>Name</Form.Label>
+                        <Form.Group>
+                            <Form.Control required isInvalid={this.state.firstNameInvalid} placeholder="First name" onChange={this.onChangeFirstName} />
+                            <Form.Control.Feedback type="invalid">First name is invalid</Form.Control.Feedback>
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Control required isInvalid={this.state.lastNameInvalid} placeholder="Last name" onChange={this.onChangeLastName} />
+                            <Form.Control.Feedback type="invalid">Last name is invalid</Form.Control.Feedback>
+                        </Form.Group>
+                    </Col>
+                    <Col>
+                        <Form.Label>Date of Birth </Form.Label>
+                        <Form.Group>
+                        <DatePicker
+                            required
+                            peekNextMonth
+                            showMonthDropdown
+                            showYearDropdown
+                            dropdownMode="select"
+                            maxDate={this.state.date}
+                            selected={this.state.date}
+                            onChange={this.onChangeDate}
+                            className="form-control"/>
+                        </Form.Group><br/>
                     </Col>
                 </Row><br/>
 
@@ -149,14 +221,25 @@ export default class Register extends Component {
                             <InputGroup.Text id="inputGroupPrepend">@</InputGroup.Text>
                         </InputGroup.Prepend>
 
-                        <Form.Control required type="text" placeholder="Username" aria-describedby="inputGroupPrepend" value={this.state.username} onChange={this.onChangeUsername}/>
-
-                        <Form.Control.Feedback type="invalid">Please choose a username.</Form.Control.Feedback>
+                        <Form.Control required isInvalid={this.state.usernameInvalid || !this.state.usernameUnique} type="text" placeholder="Username" aria-describedby="inputGroupPrepend" value={this.state.username} onChange={this.onChangeUsername}/>
+                        <Form.Control.Feedback type="invalid">{this.state.usernameInvalid? "Please choose a valid username." : "Username is already taken!"}</Form.Control.Feedback>
                     </InputGroup><br/>
 
                     <Form.Group>
-                        <Form.Control required type="password" placeholder="Password" autoComplete="on" onChange={this.onChangePassword}/><br/>
-                        <Form.Control required type="password" placeholder="Password confirmation" autoComplete="on" onChange={this.onChangePasswordConf}/>
+                        <Form.Control required isInvalid={this.state.passwordInvalid} type="password" placeholder="Password" autoComplete="on" onChange={this.onChangePassword}/>
+                        <Form.Control.Feedback type="invalid">
+                            Password must be 6 characters or longer and must contain at least :
+                            <ul>
+                                <li>1 lowercase</li>
+                                <li>1 uppercase</li>
+                                <li>1 digit</li>
+                            </ul>
+                        </Form.Control.Feedback>
+                    </Form.Group>
+
+                    <Form.Group>
+                        <Form.Control required isInvalid={this.state.pwConfInvalid} type="password" placeholder="Confirm password" autoComplete="on" onChange={this.onChangePasswordConf}/>
+                        <Form.Control.Feedback type="invalid">Passwords don't match.</Form.Control.Feedback>
                     </Form.Group><br/>
 
                     <div className="text-center">
