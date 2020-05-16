@@ -8,8 +8,7 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import User from './user.component';
-import { BrowserRouter as Router, Route} from "react-router-dom";
+import { BrowserRouter as Router} from "react-router-dom";
 import '../utils/custom.css';
 const passwordHash = require('password-hash');
 
@@ -30,11 +29,12 @@ export default class EditProfil extends Component {
         this.onChangeBio = this.onChangeBio.bind(this);
 
         this.state = {
-            username: '',
+            username: props.username,
             newUsername: '',
             password: '',
             firstName: '',
             lastName: '',
+            bio: '',
             dateOfBirth: new Date(),
             usernameUnique: true,
             newPassword: '',
@@ -50,7 +50,7 @@ export default class EditProfil extends Component {
     }
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.props.match.params.username)
+        Axios.get('http://localhost:5000/users/' + this.state.username)
             .then(res => {
                 this.setState({
                     username: res.data.username,
@@ -62,6 +62,7 @@ export default class EditProfil extends Component {
                     passwordHashed: res.data.password
                 })
             })
+            .catch(err => console.log(err));
     }
 
 
@@ -214,13 +215,13 @@ export default class EditProfil extends Component {
             user.password = passwordHash.generate(this.state.newPassword);
         }
 
-        console.log(user)
-        Axios.post('http://localhost:5000/users/edit/' + this.props.match.params.username, user)
+        Axios.post('http://localhost:5000/users/edit/' + this.props.username, user)
             .then(res => {
                 localStorage.setItem('username', this.state.newUsername);
                 localStorage.setItem('firstname', this.state.firstName);
                 localStorage.setItem('lastname', this.state.lastName);
                 localStorage.setItem('bio', this.state.bio)
+                this.props.setSettings(false);
                 window.location = '/profil/' + this.state.newUsername;
             })
             .catch(err => console.log(err));
@@ -234,8 +235,6 @@ export default class EditProfil extends Component {
         return (
             <Router>
             <Jumbotron>
-                <Route path="/profil/edit/:username" exact component={User} /><br/><br/>
-
                 <Form onSubmit={this.onSubmit}>
                 <Form.Group as={Col} md="8" className="mx-auto">
 

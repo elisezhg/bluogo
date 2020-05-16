@@ -23,7 +23,12 @@ export default class Sidebar extends Component {
 
     onClickLogOut(e) {
         localStorage.removeItem("username");
+        localStorage.removeItem("firstname");
+        localStorage.removeItem("lastname");
+        localStorage.removeItem("bio");
         localStorage.removeItem("logged in");
+        localStorage.removeItem("age");
+
         this.state.Auth.setAuth(false);
         console.log(this.state.Auth.auth);
         window.location = "/login";
@@ -45,7 +50,7 @@ export default class Sidebar extends Component {
                     <Nav className="mr-auto">
                         <Nav.Link href="/" >Home</Nav.Link>
                         <Nav.Link onClick={this.onClickProfil}>Profil</Nav.Link>
-                        <Nav.Link href="/">Trends</Nav.Link>
+                        <Nav.Link href="/trending">Trending</Nav.Link>
                         <Nav.Link onClick={this.onClickLogOut}>Logout</Nav.Link>
 
                     </Nav>

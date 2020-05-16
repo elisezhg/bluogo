@@ -8,9 +8,24 @@ router.route('/').get((req, res) => {
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
+// GET request
+router.route('/usernames').get((req, res) => {
+    User.find({}, {username: 1, _id: 0})
+        .then(users => res.json(users))
+        .catch(err => res.status(400).json('Error: ' + err));
+});
+
 // GET request : a specific user
 router.route('/:username').get((req, res) => {
     User.findOne({username : req.params.username})
+        .then(user => res.json(user))
+        .catch(err => res.status(400).json('Error: ' + err));
+});
+
+
+// GET request : a specific user
+router.route('/id/:id').get((req, res) => {
+    User.findById(req.params.id)
         .then(user => res.json(user))
         .catch(err => res.status(400).json('Error: ' + err));
 });
@@ -69,11 +84,9 @@ router.route('/edit/:username').post((req, res) => {
             user.password = req.body.password;
             user.bio = req.body.bio;
 
-            console.log(user)
-
             // save the user
             user.save()
-                .then(() => res.json('Usser updated!'))
+                .then(() => res.json('User updated!'))
                 .catch(err => res.status(400).json('Error: ' + err));
 
         })

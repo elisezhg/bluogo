@@ -1,24 +1,51 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route} from "react-router-dom";
 import Jumbotron from 'react-bootstrap/Jumbotron';
-import Button from 'react-bootstrap/Button';
+import Nav from 'react-bootstrap/Nav';
 import User from './user.component';
 import AddPost from './add-post.component';
 import Posts from './posts.component';
+import EditProfil from './edit-profil.component';
 
 export default class Profil extends Component {
     constructor(props) {
         super(props);
 
+        this.setRefresh = this.setRefresh.bind(this)
+        this.setSettings = this.setSettings.bind(this)
+
         this.state = {
-            user_id: '',
-            username: '',
-            password: '',
-            firstname: '',
-            lastname: '',
-            date: new Date()
+            needRefresh: false,
+            toSettings: true,
+            _isMounted: false
         }
     }
+
+    setRefresh(bool) {
+        this.setState({
+            needRefresh: bool
+        })
+    }
+
+    setSettings(bool) {
+        this.setState({
+            toSettings: bool
+        })
+    }
+
+    componentDidMount() {
+        this.setState({
+            toSettings: false,
+            _isMounted: true
+        })
+    }
+
+    componentWillUnmount() {
+        this.setState({
+            _isMounted: false
+        })
+    }
+
 
 
     render() {
@@ -26,15 +53,20 @@ export default class Profil extends Component {
             <Router>
                 <Jumbotron>
                     <Route path="/profil/:username" exact component={User} />
+                    <Nav variant="tabs" defaultActiveKey="#posts">
+                        <Nav.Item>
+                            <Nav.Link href="#posts" onClick={() => this.setSettings(false)}>Posts</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                            <Nav.Link href="#edit" onClick={() => this.setSettings(true)}>Edit</Nav.Link>
+                        </Nav.Item>
+                    </Nav>
 
-                    <div className="text-right">
-                        <Button href={"/profil/edit/" + this.props.match.params.username}  variant="outline-secondary" size="sm">Edit</Button>
-                    </div><hr/>
-
-                    <AddPost username={this.props.match.params.username}/>
-                    {/* <Route path="/profil/:username" exact component={AddPost} /> */}
-                    {/* <Route path="/profil/:username" exact component={Post} /> */}
-                    <Posts username={this.props.match.params.username}/>
+                    {this.state._isMounted && this.state.toSettings?
+                        (<EditProfil username={this.props.match.params.username} setSettings={this.setSettings} />) :
+                        (<><br/><br/><AddPost username={this.props.match.params.username} setRefresh={this.setRefresh}/>
+                        <Posts username={this.props.match.params.username} setRefresh={this.setRefresh} needRefresh={this.state.needRefresh}/></>)
+                    }
                 </Jumbotron>
             </Router>
         )

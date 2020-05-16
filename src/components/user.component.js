@@ -12,9 +12,9 @@ export default class User extends Component {
             username: props.match.params.username,
             firstName: localStorage.getItem('firstname'),
             lastName: localStorage.getItem('lastname'),
-            dateOfBirth: new Date(),
+            dateOfBirth: localStorage.getItem('dob') ? new Date(localStorage.getItem('dob')) : new Date(),
             bio: localStorage.getItem('bio'),
-            age: 0
+            age: localStorage.getItem('age')
         }
     }
 
@@ -29,6 +29,11 @@ export default class User extends Component {
                     bio: res.data.bio,
                     age: this.calculateAge(new Date(res.data.dateOfBirth))
                 })
+;
+                localStorage.setItem("firstname", res.data.firstName);
+                localStorage.setItem("lastname", res.data.lastName);
+                localStorage.setItem("bio", res.data.bio);
+                localStorage.setItem("age", this.state.age);
             })
     }
 

@@ -3,9 +3,6 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
     box-shadow: none;
     outline: none;}
 
-.form-control {
-    box-shadow: none!important;}
-
 .custom-textarea {
     resize: none;
     background-color: rgba(0, 0, 0, 0);
@@ -17,4 +14,16 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
     padding: 0;
     border: 0;
     width: 100%;
+}
+
+.card {
+    width: 70%;
+    margin: auto;
+    border-radius: 12px;
+}
+
+.card-comment {
+    width: 90%;
+    margin-right: 0;
+    border-top-left-radius: 0;
 }

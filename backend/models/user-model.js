@@ -7,9 +7,7 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true,
-        minlength: 3,
-        //validate: [validateUsername, 'Please enter a valid username!']
+        trim: true
     },
 
     dateOfBirth: { type: Date, required: true },
@@ -22,12 +20,6 @@ const userSchema = new Schema({
 } , {
     timestamps: true,
 });
-
-
-var validateUsername = function(username) {
-    var re = /^[a-zA-Z0-9.\-_$@*!]{3,16}$/;
-    return re.test(username)
-};
 
 
 const User = mongoose.model('User', userSchema);

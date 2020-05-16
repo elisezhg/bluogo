@@ -79,7 +79,7 @@ export default class Login extends Component {
                     this.state.Auth.setAuth(true);
                     localStorage.setItem('logged in', 'true');
                     localStorage.setItem('username', this.state.username);
-                    window.location = '/';
+                    window.location = '/profil/' + this.state.username;
                 } else {
                     this.setState({ passwordInvalid: true })
                 }
