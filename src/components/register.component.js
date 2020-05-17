@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -69,7 +69,7 @@ export default class Register extends Component {
 
 
         // Username already taken?
-        Axios.get('http://localhost:5000/users/usernames')
+        axios.get('http://localhost:5000/users/usernames')
         .then(users => {
             for (var user in users.data) {
                 const username = users.data[user].username;
@@ -162,14 +162,14 @@ export default class Register extends Component {
             dateOfBirth: this.state.date
         }
 
-        Axios.post('http://localhost:5000/users/add', user)
+        axios.post('http://localhost:5000/users/add', user)
             .then(res => {
                 this.state.Auth.setAuth(true);
-                localStorage.setItem('logged in', 'true');
+                localStorage.setItem('token', res.data.token);
                 localStorage.setItem('username', this.state.username);
                 localStorage.setItem('firstname', this.state.firstName);
                 localStorage.setItem('lastname', this.state.lastName);
-                window.location = '/';
+                window.location = '/profil/' + this.state.username;
             })
             .catch(err => console.log(err));
     }

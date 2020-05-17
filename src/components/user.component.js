@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
 import Container from 'react-bootstrap/Container';
 
 export default class User extends Component {
@@ -19,7 +19,7 @@ export default class User extends Component {
     }
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.state.username)
+        axios.get('http://localhost:5000/users/' + this.state.username)
             .then(res => {
                 this.setState({
                     username: res.data.username,
@@ -29,12 +29,13 @@ export default class User extends Component {
                     bio: res.data.bio,
                     age: this.calculateAge(new Date(res.data.dateOfBirth))
                 })
-;
+
                 localStorage.setItem("firstname", res.data.firstName);
                 localStorage.setItem("lastname", res.data.lastName);
                 localStorage.setItem("bio", res.data.bio);
                 localStorage.setItem("age", this.state.age);
             })
+            .catch(err => window.location = "/");
     }
 
 

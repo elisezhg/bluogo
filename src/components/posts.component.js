@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
 import Post from './post.component';
 
 
@@ -10,48 +10,45 @@ export default class Posts extends Component {
         this.state = {
             user_id: '',
             username: props.username,
-            posts: sessionStorage.getItem('posts') ? JSON.parse(sessionStorage.getItem('posts')) : []
+            posts: []
         }
     }
 
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.state.username)
+        axios.get('http://localhost:5000/users/' + this.state.username)
         .then(res => {                
             this.setState({
                 user_id: res.data._id
             })
 
-            Axios.get('http://localhost:5000/posts/' + this.state.user_id)
+            axios.get('http://localhost:5000/posts/' + this.state.user_id)
             .then(res => {
                 this.setState({
                     posts: res.data
                 })
-
-                sessionStorage.setItem('posts', JSON.stringify(res.data));
             })
         })
         .catch(err => console.log(err));
     }
 
 
-    componentDidUpdate() {
-        if (this.props.needRefresh !== false) {
+    componentDidUpdate(prevProps, prevState) {
+        // console.log(prevState)
+        if (this.props.needRefresh) {
 
-            Axios.get('http://localhost:5000/users/' + this.state.username)
+            axios.get('http://localhost:5000/users/' + this.state.username)
             .then(res => {   
                 this.setState({
                     user_id: res.data._id
                 })
     
-                Axios.get('http://localhost:5000/posts/' + this.state.user_id)
+                axios.get('http://localhost:5000/posts/' + this.state.user_id)
                 .then(res => {
 
                     this.setState({
                         posts: res.data
                     })
-
-                    sessionStorage.setItem('posts', JSON.stringify(res.data));
                     this.props.setRefresh(false);
                 })
             })
@@ -61,6 +58,7 @@ export default class Posts extends Component {
 
 
     postsList() {
+        localStorage.setItem('posts', JSON.stringify(this.state.posts));
         return this.state.posts.map(post => {
             return <Post post={post} username={this.state.username} key={post._id}/>;
         })
@@ -69,7 +67,7 @@ export default class Posts extends Component {
 
     render() {
         return (
-            <div><br/>
+            <div>
                 { this.postsList() }
             </div>
         )

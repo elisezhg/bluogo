@@ -1,5 +1,8 @@
 const router = require('express').Router();
 let User = require('../models/user-model');
+let UserSession = require('../models/user-session-model.js');
+const passwordHash = require('password-hash');
+
 
 // GET request
 router.route('/').get((req, res) => {
@@ -17,7 +20,7 @@ router.route('/usernames').get((req, res) => {
 
 // GET request : a specific user
 router.route('/:username').get((req, res) => {
-    User.findOne({username : req.params.username})
+    User.findOne({username : req.params.username},{username: 1, firstName: 1, lastName: 1, bio: 1, dateOfBirth: 1, createdAt: 1})
         .then(user => res.json(user))
         .catch(err => res.status(400).json('Error: ' + err));
 });
@@ -25,15 +28,57 @@ router.route('/:username').get((req, res) => {
 
 // GET request : a specific user
 router.route('/id/:id').get((req, res) => {
-    User.findById(req.params.id)
-        .then(user => res.json(user))
+    User.findById(req.params.id, {username: 1})
+        .then(user => res.json(user.username))
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
-// get pw of the user
-router.route('/password/:username').get((req, res) => {
-    User.find({username : req.params.username})
-        .then(user => res.json(user[0].password))
+// Log in
+router.route('/login/:username').post((req, res) => {
+    User.findOne({username : req.params.username})
+        .then(user => {
+            if (passwordHash.verify(req.body.password, user.password)) {
+
+                // Create a new user session
+                const user_id = user._id;
+
+                const newUserSession = new UserSession({
+                    user_id
+                })
+
+                newUserSession.save(
+                    function(err, doc) {
+                        if (err) return res.status(400).json('Error: ' + err);
+                        res.json({token: doc._id});
+                    }
+                );
+
+            } else {
+                res.status(401).json('wrong pasword')
+            }
+        })
+        .catch(err => res.status(400).json('Error: ' + err));
+})
+
+
+router.route('/authentification/:username').post((req, res) => {
+    User.findOne({username : req.params.username})
+        .then(user => {
+            if (passwordHash.verify(req.body.password, user.password)) {
+                res.json('success');
+            } else {
+                res.status(401).json('Failed authentification');
+            }
+        })
+        .catch(err => res.status(400).json('Error: ' + err));
+})
+
+
+
+// Log out
+router.route('/logout').post((req, res) => {
+    UserSession.findByIdAndRemove(req.body.token, {useFindAndModify: false})
+        .then(() => res.json('session killed'))
         .catch(err => res.status(400).json('Error: ' + err));
 })
 
@@ -65,9 +110,23 @@ router.route('/add').post((req, res) => {
     });
 
     // save the user in the database
-    newUser.save()
-        .then(() => res.json('User added!'))
-        .catch(err => res.status(400).json('Error: ' + err));
+    newUser.save(function(err, doc) {
+        if (err) return res.status(400).json('Error: ' + err);
+
+        // Create a new user session
+        const user_id = doc._id;
+
+        const newUserSession = new UserSession({
+            user_id
+        })
+
+        newUserSession.save(
+            function(err, doc) {
+                if (err) return res.status(400).json('Error: ' + err);
+                res.json({token: doc._id});
+            }
+        );
+    })
 });
 
 
@@ -81,7 +140,7 @@ router.route('/edit/:username').post((req, res) => {
             user.dateOfBirth = req.body.dateOfBirth;
             user.firstName = req.body.firstName;
             user.lastName = req.body.lastName;
-            user.password = req.body.password;
+            user.password = passwordHash.generate(req.body.password);
             user.bio = req.body.bio;
 
             // save the user
@@ -92,5 +151,17 @@ router.route('/edit/:username').post((req, res) => {
         })
         .catch(err => res.status(400).json('Error: ' + err));
 });
+
+
+router.route('/token/:token').get((req, res) => {
+    UserSession.findById(req.params.token)
+        .then(session => {
+            User.findById(session.user_id, {username: 1, firstName: 1, lastName: 1, bio: 1, dateOfBirth: 1})
+                .then(user => res.json(user))
+                .catch(err => res.status(400).json('Error: ' + err));
+        })
+        .catch(err => res.status(400).json('Error: ' + err));
+})
+
 
 module.exports = router;

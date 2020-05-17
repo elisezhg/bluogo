@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
+import autosize from 'autosize';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -12,11 +13,19 @@ export default class Comment extends Component {
         this.onChangeContent = this.onChangeContent.bind(this);
 
         this.state = {
-            user_id: props.post.user_id,
-            username: props.username,
+            username: localStorage.getItem('username'),
             content: '',
             post_id: props.post._id
         }
+    }
+
+    componentDidMount() {
+        // axios.get('http://localhost:5000/users/token/' + localStorage.getItem('token'))
+        //     .then(res => {
+        //         this.setState({
+        //             username: res.data.username
+        //         })
+        //     })
     }
 
 
@@ -24,6 +33,8 @@ export default class Comment extends Component {
         this.setState({
             content: e.target.value
         });
+
+        autosize(document.querySelectorAll('textarea'));
     }
 
 
@@ -32,12 +43,11 @@ export default class Comment extends Component {
 
         const comment = {
             content: this.state.content,
-            user_id: this.state.user_id,
-            createdAt: new Date()
+            token: localStorage.getItem('token')
         }
 
-        Axios.post('http://localhost:5000/posts/add_comment/' + this.state.post_id, comment)
-            .then(res => console.log(res.data))
+        axios.post('http://localhost:5000/posts/add_comment/' + this.state.post_id, comment)
+            .then(res => this.props.setRefresh())
             .catch(err => console.log(err));
     }
 
@@ -46,10 +56,10 @@ export default class Comment extends Component {
             <div><br/>
             <Card bg="white" className="card-comment">
                 <Card.Body>
-                    <Card.Title>@{this.state.username}</Card.Title>
+                    <Card.Title>@{this.state.username}</Card.Title><br/>
                     <Form onSubmit={this.onSubmit}>
                             <Form.Group>
-                                <Form.Control className="custom-textarea" as="textarea" text="white" rows="1" placeholder="Share your thoughts!" value= {this.state.content} onChange={this.onChangeContent}></Form.Control>
+                                <textarea className="custom-textarea container"placeholder="Share your thoughts!" value= {this.state.content} onChange={this.onChangeContent}></textarea>
                             </Form.Group>
                             
                             <div className="text-right">

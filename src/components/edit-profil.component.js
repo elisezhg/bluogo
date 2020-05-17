@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
-import Jumbotron from 'react-bootstrap/Jumbotron';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
@@ -39,7 +38,6 @@ export default class EditProfil extends Component {
             usernameUnique: true,
             newPassword: '',
             newPasswordConf: '',
-            passwordHashed: '',
             passwordMatch: true,
             newPwInvalid: false,
             newPwConfInvalid: false,
@@ -50,7 +48,7 @@ export default class EditProfil extends Component {
     }
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.state.username)
+        axios.get('http://localhost:5000/users/' + this.state.username)
             .then(res => {
                 this.setState({
                     username: res.data.username,
@@ -58,8 +56,7 @@ export default class EditProfil extends Component {
                     firstName: res.data.firstName,
                     lastName: res.data.lastName,
                     dateOfBirth: new Date(res.data.dateOfBirth),
-                    bio: res.data.bio,
-                    passwordHashed: res.data.password
+                    bio: res.data.bio
                 })
             })
             .catch(err => console.log(err));
@@ -89,7 +86,7 @@ export default class EditProfil extends Component {
         }
 
         // Username already taken?
-        Axios.get('http://localhost:5000/users/')
+        axios.get('http://localhost:5000/users/')
         .then(users => {
             for (var user in users.data) {
                 const username = users.data[user].username;
@@ -191,22 +188,15 @@ export default class EditProfil extends Component {
                 newPwConfInvalid: true
             })
             return;
-        } else if (!passwordHash.verify(this.state.password, this.state.passwordHashed)) {
-            this.setState({
-                passwordMatch: false
-            })
-            return;
         } else if (this.state.usernameUnique === false) {
             return;
         }
 
-
-        //post user
         const user = {
             username: this.state.newUsername,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            password: this.state.passwordHashed,
+            password: this.state.password,
             dateOfBirth: this.state.dateOfBirth,
             bio: this.state.bio
         }
@@ -215,16 +205,24 @@ export default class EditProfil extends Component {
             user.password = passwordHash.generate(this.state.newPassword);
         }
 
-        Axios.post('http://localhost:5000/users/edit/' + this.props.username, user)
+        axios.post('http://localhost:5000/users/authentification/' + this.state.username, {password: this.state.password})
             .then(res => {
-                localStorage.setItem('username', this.state.newUsername);
-                localStorage.setItem('firstname', this.state.firstName);
-                localStorage.setItem('lastname', this.state.lastName);
-                localStorage.setItem('bio', this.state.bio)
-                this.props.setSettings(false);
-                window.location = '/profil/' + this.state.newUsername;
-            })
-            .catch(err => console.log(err));
+                if (res.data === 'success') {
+                    axios.post('http://localhost:5000/users/edit/' + this.props.username, user)
+                    .then(res => {
+                        localStorage.setItem('username', this.state.newUsername);
+                        localStorage.setItem('firstname', this.state.firstName);
+                        localStorage.setItem('lastname', this.state.lastName);
+                        localStorage.setItem('bio', this.state.bio)
+                        this.props.setSettings(false);
+                        window.location = '/profil/' + this.state.newUsername;
+                    })
+                    .catch(err => console.log(err))
+                } else {
+                    this.setState({
+                        passwordMatch: false
+                    })
+                }})
     }
 
 
@@ -234,9 +232,8 @@ export default class EditProfil extends Component {
 
         return (
             <Router>
-            <Jumbotron>
                 <Form onSubmit={this.onSubmit}>
-                <Form.Group as={Col} md="8" className="mx-auto">
+                <Form.Group as={Col} md="8" className="mx-auto"><br/>
 
                 <Form.Label>Personal information</Form.Label>
                 <Row>
@@ -308,7 +305,6 @@ export default class EditProfil extends Component {
                     </div>
                 </Form.Group>
             </Form>
-            </Jumbotron>
             </Router>
         )
     }

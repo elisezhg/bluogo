@@ -1,6 +1,7 @@
 const router = require('express').Router();
 let Post = require('../models/post-model');
 const Comment = require('../models/comment-model.js');
+let UserSession = require('../models/user-session-model.js');
 
 // GET request : get all posts
 router.route('/').get((req, res) => {
@@ -38,23 +39,27 @@ router.route('/:id').delete((req, res) => {
 
 // POST request : add a new post
 router.route('/add').post((req, res) => {
-    const user_id = req.body.user_id;
-    const content = req.body.content;
-    const likes = [];
-    const comments = []
-
-    // create new post
-    const newPost = new Post({
-        user_id,
-        content,
-        likes,
-        comments
-    });
-
-    // save the post in the database
-    newPost.save()
-        .then(() => res.json('Post added!'))
-        .catch(err => res.status(400).json('Error: ' + err));
+    UserSession.findById(req.body.token)
+    .then(session => {
+        const user_id = session.user_id;
+        const content = req.body.content;
+        const likes = [];
+        const comments = []
+    
+        // create new post
+        const newPost = new Post({
+            user_id,
+            content,
+            likes,
+            comments
+        });
+    
+        // save the post in the database
+        newPost.save()
+            .then(() => res.json('Post added!'))
+            .catch(err => res.status(400).json('Error: ' + err));
+    })
+    .catch(err => res.status(401).json('Error: ' + err));
 });
 
 
@@ -82,40 +87,47 @@ router.route('/update/:id').post((req, res) => {
 
 // Add a new comment to the post
 router.route('/add_comment/:id').post((req, res) => {
-    const user_id = req.body.user_id;
-    const content = req.body.content;
-    const createdAt = req.body.createdAt;
 
-    // create new post
-    const newComment = new Comment({
-        user_id,
-        content,
-        createdAt
-    });
-
-    Post.findById(req.params.id)
-        .then((post) => {
-
-            post.comments.push(newComment);
-
-            post.save()
-                .then(() => res.json('Comment added!'))
+    UserSession.findById(req.body.token)
+        .then(session => {
+            const user_id = session.user_id;
+            const content = req.body.content;
+            const createdAt = new Date();
+        
+            // create new comment
+            const newComment = new Comment({
+                user_id,
+                content,
+                createdAt
+            });
+        
+            Post.findById(req.params.id)
+                .then(post => {
+        
+                    post.comments.push(newComment);
+        
+                    post.save()
+                        .then(() => res.json('Comment added!'))
+                        .catch(err => res.status(400).json('Error: ' + err));
+                })
                 .catch(err => res.status(400).json('Error: ' + err));
+
         })
-        .catch(err => res.status(400).json('Error: ' + err));
+        .catch(err => res.status(401).json('Error: ' + err));
 })
 
 
 // User likes the post
 router.route('/like/:id').post((req, res) => {
     Post.findById(req.params.id)
-        .then((post) => {
+        .then(post => {
             post.likes.push(req.body.user_id);
 
             post.save()
                 .then(() => res.json('Post liked'))
                 .catch(err => res.status(400).json('Error: ' + err));
         })
+        .catch(err => res.status(401).json('Error: ' + err));
 
 })
 
@@ -135,7 +147,15 @@ router.route('/unlike/:id').post((req, res) => {
 // Return all the likes of the post
 router.route('/likes/:id').get((req, res) => {
     Post.findById(req.params.id)
-        .then((post) => res.json(post.likes))
+        .then(post => res.json(post.likes))
+        .catch(err => res.status(400).json('Error: ' + err));
+})
+
+
+router.route('/comments/:id').get((req, res) => {
+    Post.findById(req.params.id)
+        .then(post => res.json(post.comments))
+        .catch(err => res.status(400).json('Error: ' + err));
 })
 
 

@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Col from 'react-bootstrap/Col';
-const passwordHash = require('password-hash');
 
 export default class Login extends Component {
     constructor(props) {
@@ -14,8 +13,6 @@ export default class Login extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChangeUsername = this.onChangeUsername.bind(this);
         this.onChangePassword = this.onChangePassword.bind(this);
-
-        console.log(this.props.authApi)
 
         this.state = {
             username: '',
@@ -35,7 +32,7 @@ export default class Login extends Component {
         })
 
         // Username already taken?
-        Axios.get('http://localhost:5000/users/usernames')
+        axios.get('http://localhost:5000/users/usernames')
         .then(users => {
             for (var user in users.data) {
                 const username = users.data[user].username;
@@ -70,21 +67,18 @@ export default class Login extends Component {
             return;
         }
 
-
-        const pw = this.state.password;
-
-        Axios.get('http://localhost:5000/users/password/' + this.state.username)
+        
+        axios.post('http://localhost:5000/users/login/' + this.state.username, {password: this.state.password})
             .then(res => {
-                if (passwordHash.verify(pw, res.data)) {
-                    this.state.Auth.setAuth(true);
-                    localStorage.setItem('logged in', 'true');
-                    localStorage.setItem('username', this.state.username);
-                    window.location = '/profil/' + this.state.username;
-                } else {
-                    this.setState({ passwordInvalid: true })
-                }
+                this.state.Auth.setAuth(true);
+                localStorage.setItem('token', res.data.token);
+                localStorage.setItem('username', this.state.username);
+                window.location = '/profil/' + this.state.username;
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                this.setState({ passwordInvalid: true });
+                console.log(err);
+            });
     }
 
 

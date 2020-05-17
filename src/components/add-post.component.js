@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import Axios from 'axios';
+import axios from 'axios';
+import autosize from 'autosize';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -13,41 +14,43 @@ export default class AddPost extends Component {
         this.onChangeContent = this.onChangeContent.bind(this);
 
         this.state = {
-            username: props.username,
-            user_id: '',
+            username: localStorage.getItem('username'),
             content: ''
         }
+        autosize(document.querySelectorAll('textarea'));
     }
 
 
     componentDidMount() {
-        Axios.get('http://localhost:5000/users/' + this.state.username)
-            .then(res => {                
-                this.setState({
-                    user_id: res.data._id
-                })
-            })
-            .catch(err => console.log(err));
+        // axios.get('http://localhost:5000/users/' + this.state.username)
+        //     .then(res => {                
+        //         this.setState({
+        //             user_id: res.data._id
+        //         })
+        //     })
+        //     .catch(err => console.log(err));
     }
 
     onChangeContent(e) {
+        autosize(document.querySelectorAll('textarea'));
         this.setState({
             content: e.target.value
         });
+
+        autosize(document.querySelectorAll('textarea'));
     }
+
 
     onSubmit(e) {
         e.preventDefault();
 
         const post = {
-            user_id: this.state.user_id,
-            content: this.state.content
+            content: this.state.content,
+            token: localStorage.getItem('token')
         }
 
-        Axios.post('http://localhost:5000/posts/add', post)
+        axios.post('http://localhost:5000/posts/add', post)
             .then(res => {
-                console.log(res.data);
-
                 this.setState({
                     content: ''
                 })
@@ -62,10 +65,10 @@ export default class AddPost extends Component {
         return (
                 <Card bg="white" text="dark">
                     <Card.Body>
-                        <Card.Title>@{this.state.username}</Card.Title>
+                        <Card.Title>@{this.state.username}</Card.Title><br/>
                         <Form onSubmit={this.onSubmit}>
                             <Form.Group>
-                                <Form.Control className="custom-textarea" as="textarea" placeholder="Write something!" value= {this.state.content} onChange={this.onChangeContent}></Form.Control>
+                                <textarea className="custom-textarea container" placeholder="Write something!" value= {this.state.content} onChange={this.onChangeContent}></textarea>
                             </Form.Group>
                             
                             <div className="text-right">
@@ -74,7 +77,6 @@ export default class AddPost extends Component {
                         </Form>
                     </Card.Body>
                 </Card>
-
         )
     }
 }
