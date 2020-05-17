@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import Post from './post.component';
 
-
 export default class Posts extends Component {
     constructor(props) {
         super(props);
@@ -45,7 +44,6 @@ export default class Posts extends Component {
     
                 axios.get('http://localhost:5000/posts/' + this.state.user_id)
                 .then(res => {
-
                     this.setState({
                         posts: res.data
                     })

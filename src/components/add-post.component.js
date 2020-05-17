@@ -32,7 +32,6 @@ export default class AddPost extends Component {
     }
 
     onChangeContent(e) {
-        autosize(document.querySelectorAll('textarea'));
         this.setState({
             content: e.target.value
         });

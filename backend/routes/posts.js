@@ -10,13 +10,41 @@ router.route('/').get((req, res) => {
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
+
+// GET request : get all posts
+router.route('/home/:index').get((req, res) => {
+    Post.find().sort({createdAt: -1})
+        .then(allPosts => {
+            const index = +req.params.index;
+
+            if (allPosts.length <= index) {
+                res.json('end');
+                return;
+            }
+
+            const posts = allPosts.slice(index, index + 10);
+            res.json(posts)
+        })
+        .catch(err => res.status(400).json('Error: ' + err));
+});
+
 // GET request : get the most liked posts
-router.route('/trending').get((req, res) => {
+router.route('/trending/:index').get((req, res) => {
     Post.aggregate([
         { "$addFields": { "likesCount": { "$size": "$likes" }}},
         { "$sort": { "likesCount": -1 }}
       ])
-        .then(posts => res.json(posts))
+        .then(allPosts => {
+            const index = +req.params.index;
+
+            if (allPosts.length <= index) {
+                res.json('end');
+                return;
+            }
+
+            const posts = allPosts.slice(index, index + 10);
+            res.json(posts)
+        })
         .catch(err => res.status(400).json('Error: ' + err));
 });
 

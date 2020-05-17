@@ -3,7 +3,7 @@ html {
 }
 
 body {
-    background-color: lightblue;
+    background-color: #add8e6;
 }
 
 a {
@@ -82,7 +82,7 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
 .custom-nav-item {
     padding: .5rem 1rem;
     text-decoration: none;
-    color: lightblue !important;
+    color: #46B1C9 !important;
     transition: transform .2s;
     font-size: 1.4em;
 }
@@ -108,13 +108,12 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
 
 /* Color/shape of burger icon bars */
 .bm-burger-bars {
-    /* background: #373a47; */
-    background-color: darkblue;
+    background-color: #46B1C9;
 }
 
 /* Color/shape of burger icon bars on hover*/
 .bm-burger-bars-hover {
-    background: /*#a90000*/ blue;
+    background: black;
 }
 
 /* Position and sizing of clickable cross button */
@@ -125,7 +124,7 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
 
 /* Color/shape of close button cross */
 .bm-cross {
-    background: /*#bdc3c7*/ lightblue;
+    background: /*#bdc3c7*/ #46B1C9;
 }
   
 /*
@@ -138,28 +137,22 @@ Note: Beware of modifying this element as it can break the animations - you shou
 }
   
 .bm-menu {
-    background: /*#373a47*/ white;
+    background: white;
     padding: 2.5em 1.5em 0;
     font-size: 1.15em;
 }
   
-  /* Morph shape necessary with bubble or elastic */
-.bm-morph-shape {
-    fill: #373a47;
-}
-  
-  /* Wrapper for item list */
+/* Wrapper for item list */
 .bm-item-list {
-    color: /*#b8b7ad*/;
     padding: 0.8em;
 }
   
-  /* Individual item */
+/* Individual item */
 .bm-item {
     display: inline-block;
 }
   
-  /* Styling of overlay */
-  .bm-overlay {
+/* Styling of overlay */
+.bm-overlay {
     background: rgba(0, 0, 0, 0.3);
 }
