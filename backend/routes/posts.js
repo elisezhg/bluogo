@@ -1,7 +1,8 @@
 const router = require('express').Router();
-let Post = require('../models/post-model');
+const Post = require('../models/post-model');
 const Comment = require('../models/comment-model.js');
-let UserSession = require('../models/user-session-model.js');
+const UserSession = require('../models/user-session-model.js');
+const ObjectId = require('mongodb').ObjectID;
 
 // GET request : get all posts
 router.route('/').get((req, res) => {
@@ -57,11 +58,43 @@ router.route('/:user_id').get((req, res) => {
 });
 
 
-// GET request : delete a specific post
-router.route('/:id').delete((req, res) => {
-    Post.findByIdAndDelete(req.params.id)
-        .then(() => res.json('Post deleted.'))
-        .catch(err => res.status(400).json('Error: ' + err));
+// DELETE request : delete a specific post
+router.route('/:id/:token').delete((req, res) => {
+    UserSession.findById(req.params.token)
+        .then(session => {
+            if (session == null) return res.status(401);
+
+            Post.findByIdAndDelete(req.params.id)
+                .then(post => {
+                    if (post.user_id !== session.user_id) return res.status(400);
+                    res.json('Post deleted.')
+                })
+                .catch(err => res.status(400).json('Error: ' + err));
+        })
+        .catch(err => res.status(401).json('Error: ' + err));
+});
+
+
+// DELETE request : delete a specific comment
+router.route('/comments/:id/:token').delete((req, res) => {
+    UserSession.findById(req.params.token)
+        .then(session => {
+            if (session == null) return res.status(401);
+
+            Post.findOne({'comments._id': ObjectId(req.params.id)}, function(err, post){
+                if (err) return res.status(400).json('Error: ' + err);
+
+                const comment = post.comments.id(req.params.id);
+
+                if (comment.user_id !== session.user_id) return res.status(400);
+
+                post.comments.id(req.params.id).remove();
+                post.save()
+                    .then(() => res.json('Comment deleted!'))
+                    .catch(err => res.status(400).json('Error: ' + err));
+            });
+        })
+        .catch(err => res.status(401).json('Error: ' + err));
 });
 
 
@@ -69,10 +102,12 @@ router.route('/:id').delete((req, res) => {
 router.route('/add').post((req, res) => {
     UserSession.findById(req.body.token)
     .then(session => {
+        if (session == null) return res.status(401);
+
         const user_id = session.user_id;
         const content = req.body.content;
         const likes = [];
-        const comments = []
+        const comments = [];
     
         // create new post
         const newPost = new Post({
@@ -94,21 +129,48 @@ router.route('/add').post((req, res) => {
 
 // POST request : update a specific post
 router.route('/update/:id').post((req, res) => {
-    Post.findById(req.params.id)
-        .then(post => {
+    UserSession.findById(req.body.token)
+        .then(session => {
+            if (session == null) return res.status(401);
 
-            // update all the fields
-            post.user_id = req.body.user_id;
-            post.content = req.body.content;
-            post.likes = req.body.likes;
+            Post.findById(req.params.id)
+                .then(post => {
+                    if (post.user_id !== session.user_id) return res.status(400);
 
-            // save the post
-            post.save()
-                .then(() => res.json('Post updated!'))
+                    post.content = req.body.content;
+
+                    post.save()
+                        .then(() => res.json('Post updated!'))
+                        .catch(err => res.status(400).json('Error: ' + err));
+                })
                 .catch(err => res.status(400).json('Error: ' + err));
+        })
+        .catch(err => res.status(401).json('Error: ' + err));
+});
+
+
+// POST request : update a specific comment
+router.route('/comments/update/:id').post((req, res) => {
+    UserSession.findById(req.body.token)
+        .then(session => {
+            if (session == null) return res.status(401);
+
+            Post.findOne({'comments._id': ObjectId(req.params.id)}, function(err, post){
+                if (err) return res.status(400).json('Error: ' + err);
+
+                const comment = post.comments.id(req.params.id);
+
+                if (comment.user_id !== session.user_id) return res.status(400);
+
+                comment.content = req.body.content;
+    
+                post.save()
+                    .then(() => res.json('Comment updated!'))
+                    .catch(err => res.status(400).json('Error: ' + err));
+            });
 
         })
-        .catch(err => res.status(400).json('Error: ' + err));
+        .catch(err => res.status(401).json('Error: ' + err));
 });
 
 

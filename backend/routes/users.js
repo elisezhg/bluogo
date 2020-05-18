@@ -38,10 +38,13 @@ router.route('/login/:username').post((req, res) => {
     User.findOne({username : req.params.username})
         .then(user => {
             if (passwordHash.verify(req.body.password, user.password)) {
-
-                // Create a new user session
+                
                 const user_id = user._id;
 
+                UserSession.findOneAndDelete({user_id: user_id})
+                    .catch(err => res.status(400).json('Error: ' + err));
+                
+                // Create a new user session
                 const newUserSession = new UserSession({
                     user_id
                 })

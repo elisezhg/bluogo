@@ -47,7 +47,10 @@ export default class Comment extends Component {
         }
 
         axios.post('http://localhost:5000/posts/add_comment/' + this.state.post_id, comment)
-            .then(res => this.props.setRefresh())
+            .then(res => {
+                this.props.setRefresh()
+                this.setState({ content: '' });
+            })
             .catch(err => console.log(err));
     }
 

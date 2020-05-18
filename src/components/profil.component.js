@@ -87,7 +87,7 @@ export default class Profil extends Component {
 
                         <Card.Body>
                             {this.state.userProfil? this.showUserProfil() : this.showProfil()}
-                    
+
                         </Card.Body>
                     </Card>
                 </Jumbotron>
