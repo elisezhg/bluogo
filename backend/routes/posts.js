@@ -50,10 +50,30 @@ router.route('/trending/:index').get((req, res) => {
 });
 
 
-// GET request : get a specific post
-router.route('/:user_id').get((req, res) => {
+// GET request : get the most recent post of the user
+router.route('/newpost/:user_id/').get((req, res) => {
     Post.find({user_id : req.params.user_id}).sort({createdAt: -1})
-        .then(posts => res.json(posts))
+        .then(allPosts => {
+            res.json(allPosts[0])
+        })
+        .catch(err => res.status(400).json('Error: ' + err));
+});
+
+
+// GET request : get a specific post
+router.route('/:user_id/:index').get((req, res) => {
+    Post.find({user_id : req.params.user_id}).sort({createdAt: -1})
+        .then(allPosts => {
+            const index = +req.params.index;
+
+            if (allPosts.length <= index) {
+                res.json('end');
+                return;
+            }
+
+            const posts = allPosts.slice(index, index + 10);
+            res.json(posts)
+        })
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
@@ -242,9 +262,11 @@ router.route('/likes/:id').get((req, res) => {
 })
 
 
-router.route('/comments/:id').get((req, res) => {
+router.route('/comments/:id/:token').get((req, res) => {
     Post.findById(req.params.id)
-        .then(post => res.json(post.comments))
+        .then(post => {
+            res.json(post.comments)
+        })
         .catch(err => res.status(400).json('Error: ' + err));
 })
 

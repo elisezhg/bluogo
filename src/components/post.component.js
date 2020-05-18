@@ -66,8 +66,10 @@ export default class Post extends Component {
     // Update the post if a new comment is added
     componentDidUpdate() {
         if (this.state.needRefresh) {
-            axios.get('http://localhost:5000/posts/comments/' + this.state.post._id)
+            console.log(this.state.needRefresh)
+            axios.get('http://localhost:5000/posts/comments/' + this.state.post._id + '/' + localStorage.getItem('token'))
             .then(res => {   
+                console.log(res)
                 this.setState({
                     comments: res.data,
                     needRefresh: false
