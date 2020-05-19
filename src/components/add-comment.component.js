@@ -4,6 +4,9 @@ import autosize from 'autosize';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Image from 'react-bootstrap/Image';
+import ReactPlaceholder from 'react-placeholder';
+import "react-placeholder/lib/reactPlaceholder.css";
 
 export default class Comment extends Component {
     constructor(props) {
@@ -20,12 +23,13 @@ export default class Comment extends Component {
     }
 
     componentDidMount() {
-        // axios.get('http://localhost:5000/users/token/' + localStorage.getItem('token'))
-        //     .then(res => {
-        //         this.setState({
-        //             username: res.data.username
-        //         })
-        //     })
+        axios.get('http://localhost:5000/users/url/' + localStorage.getItem('id'))
+            .then(res => {
+                this.setState({
+                    url: res.data
+                })
+            })
+            .catch(err => console.log(err))
     }
 
 
@@ -57,6 +61,23 @@ export default class Comment extends Component {
     render() {
         return (
             <div><br/>
+            <div className="comment-pic">   
+            <ReactPlaceholder
+                type='round'
+                ready={this.state.url}
+                color='#E0E0E0'
+                showLoadingAnimation={true}
+                
+            >
+                <a href={"/profil/" + this.state.username}>
+                    <Image
+                        src={this.state.url}
+                        roundedCircle
+                        style={{width: 60, height: 60}}
+                    />
+                </a>
+            </ReactPlaceholder>
+            </div>
             <Card bg="white" className="card-comment">
                 <Card.Body>
                     <Card.Title>@{this.state.username}</Card.Title><br/>

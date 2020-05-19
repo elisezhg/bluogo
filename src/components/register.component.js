@@ -169,6 +169,7 @@ export default class Register extends Component {
                 localStorage.setItem('username', this.state.username);
                 localStorage.setItem('firstname', this.state.firstName);
                 localStorage.setItem('lastname', this.state.lastName);
+                localStorage.setItem('id', res.data.id);
                 window.location = '/profil/' + this.state.username;
             })
             .catch(err => console.log(err));

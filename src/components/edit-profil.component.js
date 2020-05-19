@@ -26,6 +26,8 @@ export default class EditProfil extends Component {
         this.onChangeNewPassword = this.onChangeNewPassword.bind(this);
         this.onChangeNewPasswordConf = this.onChangeNewPasswordConf.bind(this);
         this.onChangeBio = this.onChangeBio.bind(this);
+        this.onChangeFile = this.onChangeFile.bind(this);
+        this.fileUpload = this.fileUpload.bind(this);
 
         this.state = {
             username: props.username,
@@ -43,7 +45,8 @@ export default class EditProfil extends Component {
             newPwConfInvalid: false,
             lastNameInvalid: false,
             firstNameInvalid: false,
-            usernameInvalid: false
+            usernameInvalid: false,
+            selectedFile: null
         }
     }
 
@@ -208,6 +211,8 @@ export default class EditProfil extends Component {
         axios.post('http://localhost:5000/users/authentification/' + this.state.username, {password: this.state.password})
             .then(res => {
                 if (res.data === 'success') {
+                    this.fileUpload();
+
                     axios.post('http://localhost:5000/users/edit/' + this.props.username, user)
                     .then(res => {
                         localStorage.setItem('username', this.state.newUsername);
@@ -227,9 +232,38 @@ export default class EditProfil extends Component {
 
 
 
+    onChangeFile(e) {
+        this.setState({
+            selectedFile: e.target.files[0]
+        })
+    }
+
+
+    fileUpload(e) {
+
+        const data = new FormData();
+
+        if (this.state.selectedFile) {
+            data.append('profilPic', this.state.selectedFile, this.state.selectedFile.name);
+        
+            axios.post('http://localhost:5000/users/imgupload/' + localStorage.getItem('token'), data, {
+                headers: {
+                    'accept': 'application/json',
+                    'Accept-Language': 'en-US,en;q=0.8',
+                    'Content-Type': 'multipart/form-data; boundary=' + data._boundary,
+                }
+            })
+                .then(res => {
+                    if (res.data.error) console.log(res.data.error)
+                    window.location = '/profil/' + this.state.newUsername
+                })
+                .catch(err => console.log(err));
+        }
+    }
+
+
 
     render() {
-
         return (
             <Router>
                 <Form onSubmit={this.onSubmit}>
@@ -260,14 +294,24 @@ export default class EditProfil extends Component {
                         onChange={this.onChangeDate}
                         className="form-control"/>
                     </Col>
-                </Row><br/><br/>
+                </Row><br/>
 
                 <Form.Group>
-                        <Form.Label>Bio</Form.Label>
-                        <Form.Control as="textarea" rows="3" value={this.state.bio} onChange={this.onChangeBio}/>
+                    <Form.Label>Profil picture</Form.Label>
+                    <Form.File 
+                            id="custom-file"
+                            label="Upload a picture"
+                            custom
+                            onChange={this.onChangeFile}
+                        />
                 </Form.Group><br/>
 
-                <Form.Label>Profil</Form.Label>
+                <Form.Group>
+                    <Form.Label>Bio</Form.Label>
+                    <Form.Control as="textarea" rows="3" value={this.state.bio} onChange={this.onChangeBio}/>
+                </Form.Group><br/>
+
+                <Form.Label>Username</Form.Label>
                     <InputGroup>
                         <InputGroup.Prepend>
                             <InputGroup.Text id="inputGroupPrepend">@</InputGroup.Text>

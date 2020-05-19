@@ -41,8 +41,7 @@ textarea:focus, input[type="text"]:focus,textarea[type="text"]:focus,   input[ty
 }
 
 .card-comment {
-    width: 90%;
-    margin-right: 0;
+    margin: auto;
     border-top-left-radius: 0;
 }
 
@@ -159,4 +158,32 @@ Note: Beware of modifying this element as it can break the animations - you shou
 
 .dropdown-toggle:after {
     content: none
+}
+
+.side-profil-pic {
+    margin: auto;
+    width: 100px;
+    height: 100px;
+    margin-top: 20px;
+}
+
+.comment-pic {
+    width: 60px;
+    height: 60px;
+    margin: 10px auto auto 10px;
+    float: left;
+}
+
+@media screen and (max-width: 768px){
+    .comment-pic {
+        display: none;
+    }
+
+    .card {
+        width: 100%;
+    }
+
+    .jumbotron {
+        max-width: 100%;
+    }
 }

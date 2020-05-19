@@ -5,6 +5,7 @@ import Card from 'react-bootstrap/Card';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Image from 'react-bootstrap/Image';
 import Comment from './comment.component';
 import AddComment from './add-comment.component';
 import ReactPlaceholder from 'react-placeholder';
@@ -43,13 +44,23 @@ export default class Post extends Component {
         axios.get('http://localhost:5000/users/id/' + this.state.post.user_id)
             .then(res => {           
                 this.setState({
-                    username: res.data,
+                    username: res.data.username,
+                    firstName: res.data.firstName,
+                    lastName: res.data.lastName,
                     content: this.state.post.content,
                     isMounted: true
                 })
             })
             .catch(err => console.log(err));
-
+            
+        axios.get('http://localhost:5000/users/url/' + this.state.post.user_id)
+            .then(res => {
+                this.setState({
+                    url: res.data
+                })
+            })
+            .catch(err => console.log(err))
+        
         if (!localStorage.getItem('token')) return;
         axios.get('http://localhost:5000/users/token/' + localStorage.getItem('token'))
             .then(res => {
@@ -58,8 +69,6 @@ export default class Post extends Component {
                     liked: this.state.likes.includes(res.data._id) ? true : false
                 })
             })
-
-        
     }
 
 
@@ -228,15 +237,36 @@ export default class Post extends Component {
                 <Card>
                     <Card.Body>
                         {this.showPostSettings()}
-                    <ReactPlaceholder type='text' ready={this.state.username} color='#E0E0E0' rows={1} style={{ width: 100 }} showLoadingAnimation={true}>
-                        <Card.Title>
-                            <a href={'/profil/' + this.state.username}>@{this.state.username}</a>
-                        </Card.Title>
-                    </ReactPlaceholder><br/>
                     
-                    <ReactPlaceholder type='text' ready={this.state.content} color='#E0E0E0' rows={4} showLoadingAnimation={true} firstLaunchOnly={true}>
+                    <ReactPlaceholder
+                        type='round'
+                        ready={this.state.url}
+                        color='#E0E0E0'
+                        style={{ width: 60, height: 60, marginRight: '20px', float: 'left' }}
+                        showLoadingAnimation={true}
+                    >
+                        <a href={'/profil/' + this.state.username}>
+                        <Image
+                            src={this.state.url}
+                            roundedCircle
+                            style={{ width: 60, height: 60, marginRight: '20px', float: 'left' }}
+                        />
+                        </a>
+                    </ReactPlaceholder>
+                        
+                        <ReactPlaceholder type='text' ready={this.state.username} color='#E0E0E0' rows={2} style={{ width: 100, marginLeft: '80px' }} showLoadingAnimation={true}>
+                            <Card.Title>
+                                <a href={'/profil/' + this.state.username} style={{ fontSize: '0.9em' }}>
+                                    {this.state.firstName}&nbsp;{this.state.lastName}<br/>
+                                    @{this.state.username}
+                                </a>
+                            </Card.Title>
+                        </ReactPlaceholder><br/>
+
+                    
+                    <ReactPlaceholder type='text' ready={this.state.content} color='#E0E0E0' rows={4} style={{marginTop: '20px'}}showLoadingAnimation={true} firstLaunchOnly={true}>
                         {this.state.edit ? this.editPost() :
-                        <Card.Text className="container" style={{whiteSpace: 'pre-wrap'}}>{this.state.content}</Card.Text>}
+                        <Card.Text className="container" style={{whiteSpace: 'pre-wrap', fontSize: '1.1em'}}>{this.state.content}</Card.Text>}
                     </ReactPlaceholder><br/>
 
                         

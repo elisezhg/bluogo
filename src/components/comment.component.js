@@ -5,6 +5,7 @@ import Card from 'react-bootstrap/Card';
 import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Image from 'react-bootstrap/Image';
 import ReactPlaceholder from 'react-placeholder';
 import "react-placeholder/lib/reactPlaceholder.css";
 
@@ -32,12 +33,22 @@ export default class Comment extends Component {
         axios.get('http://localhost:5000/users/id/' + this.state.comment.user_id)
         .then(res => {
             this.setState({
-                username: res.data,
+                username: res.data.username,
+                firstName: res.data.firstName,
+                lastName: res.data.lastName,
                 showUsername: true,
                 isMounted: true
             })
         })
         .catch(err => console.log(err));
+
+        axios.get('http://localhost:5000/users/url/' + this.state.comment.user_id)
+            .then(res => {
+                this.setState({
+                    url: res.data
+                })
+            })
+            .catch(err => console.log(err))
     }
     
 
@@ -118,14 +129,35 @@ export default class Comment extends Component {
         return (
             <> {this.state.deleted? <></> :
             <div><br/>
+
+            <div className="comment-pic">   
+            <ReactPlaceholder
+                type='round'
+                ready={this.state.url}
+                color='#E0E0E0'
+                showLoadingAnimation={true}
+                
+            >
+                <a href={'/profil/' + this.state.username}>
+                <Image
+                    src={this.state.url}
+                    roundedCircle
+                    style={{width: 60, height: 60}}
+                />
+                </a>
+            </ReactPlaceholder>
+            </div>
             <Card bg="light" className="card-comment">
                 <Card.Body>
                     {this.showCommentSettings()}
                     <ReactPlaceholder type='text' ready={this.state.showUsername} color='#E0E0E0' rows={1} style={{ width: 100 }} showLoadingAnimation={true}>
                         <Card.Title>
-                            <a href={'/profil/' + this.state.username}>@{this.state.username}</a>
+                            <a href={'/profil/' + this.state.username} style={{ fontSize: '0.9em' }}>
+                                {this.state.firstName}&nbsp;{this.state.lastName}<br/>
+                                @{this.state.username}
+                            </a>
                         </Card.Title>
-                    </ReactPlaceholder><br/>
+                    </ReactPlaceholder>
                     
                     {this.state.edit ?
                         this.editComment() :

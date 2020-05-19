@@ -34,10 +34,10 @@ export default class Posts extends Component {
             
             axios.get('http://localhost:5000/posts/newpost/' + this.state.user_id)
                 .then(res => {
+                    this.props.setRefresh(false);
                     this.setState({
                         posts: [res.data].concat(this.state.posts),
                     })
-                    this.props.setRefresh(false);
                 })
                 .catch(err => console.log(err));
         }

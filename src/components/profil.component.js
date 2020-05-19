@@ -42,7 +42,6 @@ export default class Profil extends Component {
             toSettings: false,
             _isMounted: true,
         })
-        //get username from token
     }
 
     componentWillUnmount() {

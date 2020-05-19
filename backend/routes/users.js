@@ -1,8 +1,84 @@
 const router = require('express').Router();
-let User = require('../models/user-model');
-let UserSession = require('../models/user-session-model.js');
+const User = require('../models/user-model');
+const UserSession = require('../models/user-session-model.js');
 const passwordHash = require('password-hash');
+const aws= require('aws-sdk');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const path = require('path');
+router.use(bodyParser.json());
+require('dotenv').config();
 
+
+
+
+aws.config.update({
+    region: 'ca-central-1',
+    secretAccessKey: process.env.SECRET,
+    accessKeyId: process.env.ID
+});
+
+var s3 = new aws.S3();
+
+
+function checkFileType(file, cb){
+
+    const filetypes = /jpeg|jpg|png|gif/;
+
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+    const mimetype = filetypes.test(file.mimetype);
+
+    if(mimetype && extname){
+        return cb(null, true);
+    } else {
+        cb('Error: Images Only!');
+    }
+}
+
+
+router.route('/imgupload/:token').post((req, res) => {
+    UserSession.findById(req.params.token)
+        .then(session => {
+            if (!session) return res.status(401).json('Session not found');
+
+            const storage = multerS3({
+                s3: s3,
+                bucket: process.env.BUCKET,
+                key: function (req, file, cb) {
+                    cb(null, session.user_id);
+                }
+            })
+        
+            const upload = multer({
+                storage: storage,
+                fileFilter: function(req, file, cb) {
+                    checkFileType(file,cb);
+                }
+            }).single('profilPic')
+
+            upload(req, res, (err) => {
+                if (err) return res.json({error: err});
+                res.send("Uploaded!");
+            })
+        })
+        .catch(err => res.status(401).json('Error: ' + err));
+});
+
+
+router.route('/url/:id').get((req, res) => {
+    var params = { Bucket: process.env.BUCKET, Key: req.params.id };
+    s3.getObject(params, function(err) {
+        if (err) return res.json( "https://mernappbucket.s3.ca-central-1.amazonaws.com/default.png");
+        res.json("https://mernappbucket.s3.ca-central-1.amazonaws.com/" + req.params.id);
+    });
+})
+
+
+
+
+//=========================
 
 // GET request
 router.route('/').get((req, res) => {
@@ -28,8 +104,8 @@ router.route('/:username').get((req, res) => {
 
 // GET request : a specific user
 router.route('/id/:id').get((req, res) => {
-    User.findById(req.params.id, {username: 1})
-        .then(user => res.json(user.username))
+    User.findById(req.params.id, {username: 1, lastName: 1, firstName: 1})
+        .then(user => res.json(user))
         .catch(err => res.status(400).json('Error: ' + err));
 });
 
@@ -52,7 +128,7 @@ router.route('/login/:username').post((req, res) => {
                 newUserSession.save(
                     function(err, doc) {
                         if (err) return res.status(400).json('Error: ' + err);
-                        res.json({token: doc._id});
+                        res.json({token: doc._id, id: user_id});
                     }
                 );
 
@@ -101,7 +177,7 @@ router.route('/add').post((req, res) => {
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
     const password = req.body.password;
-    const bio = 'Nothing yet.'
+    const bio = 'Nothing yet.';
 
     const newUser = new User({
         username,
@@ -126,7 +202,7 @@ router.route('/add').post((req, res) => {
         newUserSession.save(
             function(err, doc) {
                 if (err) return res.status(400).json('Error: ' + err);
-                res.json({token: doc._id});
+                res.json({token: doc._id, id: user_id});
             }
         );
     })

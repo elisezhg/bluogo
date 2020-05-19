@@ -73,6 +73,7 @@ export default class Login extends Component {
                 this.state.Auth.setAuth(true);
                 localStorage.setItem('token', res.data.token);
                 localStorage.setItem('username', this.state.username);
+                localStorage.setItem('id', res.data.id);
                 window.location = '/profil/' + this.state.username;
             })
             .catch(err => {
