@@ -85,7 +85,7 @@ export default class AddPost extends Component {
 
                     <Card.Title>
                         <a href={'/profil/' + this.state.username} style={{ fontSize: '0.9em' }}>
-                            Elise Zheng <br/>
+                            {this.state.firstName}&nbsp;{this.state.lastName}<br/>
                             @{this.state.username}
                         </a><br/>
                     </Card.Title><br/>

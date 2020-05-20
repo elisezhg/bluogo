@@ -272,7 +272,7 @@ export default class Post extends Component {
                         
                     <div>
                         <div className="float-right text-muted">
-                            {this.state.post.createdAt.substring(11,16) + " " + this.state.post.createdAt.substring(0,10)}
+                            {this.state.time.substring(0,5) + " " + this.state.date}
                         </div>
 
                         {" " + this.state.post.likes.length + " "}
